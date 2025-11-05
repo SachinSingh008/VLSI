@@ -1,0 +1,161 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+entity keypad1 is
+port(clk:in std_logic;
+rl:in std_logic_vector(3 downto 0);
+sl:out std_logic_vector(3 downto 0);
+segen_o:out std_logic_vector(6 downto 0);
+display_en:out std_logic_vector(5 downto0));
+end keypad1;
+architecture Behavioral of keypad1 is
+	signal sl_s:std_logic_vector(3 downto 0):=”1110”;
+	signal segen:std_logic_vector(6 downto 0):=”1111111”;
+begin
+process(clk, sl_s)
+begin
+if rising_edge(clk) then
+sl_s(3)<=sl_s(2);
+sl_s(2)<=sl_s(1);
+sl_s(1)<=sl_s(0);
+sl_s(0)<=sl_s(3);
+end if;
+end process;
+process(clk, rl, sl_s)
+begin
+if rising_edge(clk) then
+	case rl is
+	when “0111”=> if sl_s=”0111” then segen<=”0000001”;
+			elsif sl_s=”1011” then segen<=”1001111”;
+		 	elsif sl_s=”1101” then segen<=”0010010”;
+			elsif sl_s=”1110” then segen<=”0000110”;
+			end if;
+          	when “1011”=> if sl_s=”0111” then segen<=”1001100”;
+			elsif sl_s=”1011” then segen<=”0100100”;
+		 	elsif sl_s=”1101” then segen<=”0100000”;
+			elsif sl_s=”1110” then segen<=”0001111”;
+			end if;
+when “1101”=> if sl_s=”0111” then segen<=”0000000”;
+			elsif sl_s=”1011” then segen<=”0001100”;
+		 	elsif sl_s=”1101” then segen<=”0001000”;
+			elsif sl_s=”1110” then segen<=”1100000”;
+			end if;
+when “0111”=> if sl_s=”0111” then segen<=”0110001”;
+			elsif sl_s=”1011” then segen<=”1000010”;
+		 	elsif sl_s=”1101” then segen<=”0110000”;
+			elsif sl_s=”1110” then segen<=”0111000”;
+			end if;
+	when others=> segen<=segen;
+	end case;
+end if;
+end process;
+sl<=sl_s;
+display_en<=”111101”;
+segen_o<=segen;
+end behavioral;
+
+
+
+-------------------simulation-----------------
+
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+ 
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--USE ieee.numeric_std.ALL;
+ 
+ENTITY test IS
+END test;
+ 
+ARCHITECTURE behavior OF test IS 
+ 
+    -- Component Declaration for the Unit Under Test (UUT)
+ 
+    COMPONENT keypad1
+    PORT(
+         clk : IN  std_logic;
+         rl : IN  std_logic_vector(3 downto 0);
+         sl : OUT  std_logic_vector(3 downto 0);
+         segen_o : OUT  std_logic_vector(6 downto 0);
+         display_en : OUT  std_logic_vector(5 downto 0)
+        );
+    END COMPONENT;
+    
+
+   --Inputs
+   signal clk : std_logic := '0';
+   signal rl : std_logic_vector(3 downto 0) := (others => '0');
+
+ 	--Outputs
+   signal sl : std_logic_vector(3 downto 0);
+   signal segen_o : std_logic_vector(6 downto 0);
+   signal display_en : std_logic_vector(5 downto 0);
+
+   -- Clock period definitions
+   constant clk_period : time := 10 ns;
+ 
+BEGIN
+ 
+	-- Instantiate the Unit Under Test (UUT)
+   uut: keypad1 PORT MAP (
+          clk => clk,
+          rl => rl,
+          sl => sl,
+          segen_o => segen_o,
+          display_en => display_en
+        );
+
+   -- Clock process definitions
+   clk_process :process
+   begin
+		clk <= '0';
+		wait for 10 ns;
+		clk <= '1';
+		wait for 10 ns;
+   end process;
+ 
+
+   -- Stimulus process
+   stim_proc: process
+   begin		
+      -- hold reset state for 100 ns.
+      wait for 100 ns;	
+
+      
+        -- Press Row 1 (rl = "0111")
+        rl <= "0111";
+        wait for 200 ns;
+
+        -- Press Row 2 (rl = "1011")
+        rl <= "1011";
+        wait for 200 ns;
+
+        -- Press Row 3 (rl = "1101")
+        rl <= "1101";
+        wait for 200 ns;
+
+        -- Press Row 4 (rl = "1110")
+        rl <= "1110";
+        wait for 200 ns;
+
+        -- No key pressed (idle)
+        rl <= "1111";
+        wait for 200 ns;
+
+        -- Repeating some values to test transitions
+        rl <= "0111";
+        wait for 150 ns;
+
+        rl <= "1101";
+        wait for 150 ns;
+
+      -- insert stimulus here 
+
+      wait;
+   end process;
+
+END;

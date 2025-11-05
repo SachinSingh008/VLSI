@@ -1,0 +1,88 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
+
+entity counter is
+    Port ( clk : in  STD_LOGIC;
+           count : out  STD_LOGIC_VECTOR (3 downto 0));
+end counter;
+
+architecture Behavioral of counter is
+signal s:std_logic_vector(3 downto 0):="0000";
+signal s1:std_logic_vector(20 downto 0):=(others=>'0');
+signal sclk:std_logic:='0';
+begin
+process(clk)
+begin
+if(clk'event and clk='1')then
+s1<=s1+1;
+end if;
+end process;
+sclk<=s1(20);
+
+process(sclk)
+begin
+if(sclk'event and sclk='1')then
+s<=s+1;
+end if;
+end process;
+count<=s;  
+end Behavioral;
+
+
+-------------------simulation------------
+
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
+
+ENTITY test IS
+END test;
+
+ARCHITECTURE behavior OF test IS
+
+    -- Component Declaration for the Unit Under Test (UUT)
+    COMPONENT counter
+        PORT(
+            clk   : IN  std_logic;
+            count : OUT std_logic_vector(3 downto 0)
+        );
+    END COMPONENT;
+
+    -- Signals for testbench
+    signal clk   : std_logic := '0';
+    signal count : std_logic_vector(3 downto 0);
+
+    -- Clock period
+    constant clk_period : time := 10 ns;
+
+BEGIN
+
+    -- Instantiate the Unit Under Test (UUT)
+    uut: counter PORT MAP (
+        clk => clk,
+        count => count
+    );
+
+    -- Clock generation process
+    clk_process : process
+    begin
+        while true loop
+            clk <= '0';
+            wait for clk_period / 2;
+            clk <= '1';
+            wait for clk_period / 2;
+        end loop;
+    end process;
+
+    -- Stimulus process
+    stim_proc : process
+    begin
+        -- Let the counter run for some time
+        wait for 1000 ns;
+        wait;
+    end process;
+
+END;
